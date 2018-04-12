@@ -17,11 +17,16 @@ ui <- fluidPage(
    tags$head(tags$script(src = "message-handler.js")),
    actionButton('doStep1', 'STEP 1'),
    actionButton('doStep2', 'STEP 2'),
-   actionButton('doStep3', 'STEP 3'),
+   actionButton('doStep3', 'Clustering'),
    actionButton('doStep4', 'STEP 4'),
-   actionButton('doStep5', 'STEP 5'),
    actionButton('doStep6', 'STEP 6'),
-   
+   sidebarLayout(
+     DT::dataTableOutput("table"),
+     # Show a plot of the generated distribution
+     mainPanel(
+       plotOutput("distPlot")
+     )
+   ),
    tags$div(class = "result")
 )
 
@@ -37,14 +42,35 @@ server <- function(input, output, session) {
                               message = 'STEP 2 result')
   })
   observeEvent(input$doStep3, {
+    A<- matrix( 
+      c(2, 4, 3, 1, 5, 7,
+        56,3,4,89,5,6,
+        5,2,4,1,1,1,6,7
+        ,34,2,7,8,56), # the data elements 
+      nrow=5,              # number of rows 
+      ncol=5,              # number of columns 
+      byrow = TRUE) 
+    
+    clusters <- hclust(dist(A))
+
+    output$distPlot <- renderPlot({
+      plot(clusters)
+    })
+    
+    clusterCut <- cutree(clusters, 2)
+    # output$table <- DT::renderDataTable({ 
+    #   clusterCut <- cutree(clusters, 2)
+    #   #table(clusterCut)
+    # })
     session$sendCustomMessage(type = 'testmessage',
-                              message = 'STEP 3 result')
+                              message = 'Output of clustering result')
   })
   observeEvent(input$doStep4, {
     session$sendCustomMessage(type = 'testmessage',
                               message = 'STEP 4 result')
   })
   observeEvent(input$doStep5, {
+    
     session$sendCustomMessage(type = 'testmessage',
                               message = 'STEP 5 result')
   })
