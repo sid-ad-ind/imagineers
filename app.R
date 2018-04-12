@@ -13,7 +13,7 @@ library(shiny)
 ui <- fluidPage(
    
    # Application title
-   titlePanel("Old Faithful Geyser Data"),
+   titlePanel("Alarm Flood Analysis by Imagineers"),
    tags$head(tags$script(src = "message-handler.js")),
    actionButton('doStep1', 'STEP 1'),
    actionButton('doStep2', 'STEP 2'),
