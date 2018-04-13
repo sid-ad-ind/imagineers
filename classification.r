@@ -41,14 +41,16 @@ classificationDataModel <- read.csv(file = outputCsvFile)
 classificationDataModel$natureOfFlood <- as.factor(classificationDataModel$natureOfFlood)
 head(classificationDataModel)
 #pairs.panels(classificationDataModel[-1])
-classificationDataModel %>%
-  ggplot(aes(x=natureOfFlood, y=percentOfUniqueAlarms, fill = natureOfFlood)) +
-  geom_boxplot() +
-  ggtitle("Box Plot")
 
-classificationDataModel %>% ggplot(aes(x=percentOfUniqueAlarms, fill = natureOfFlood)) +
-  geom_density(alpha=0.8, color= 'black') +
-  ggtitle("Density Plot")
+#commented unwanted graphs, can be enabled
+# classificationDataModel %>%
+#   ggplot(aes(x=natureOfFlood, y=percentOfUniqueAlarms, fill = natureOfFlood)) +
+#   geom_boxplot() +
+#   ggtitle("Box Plot")
+# 
+# classificationDataModel %>% ggplot(aes(x=percentOfUniqueAlarms, fill = natureOfFlood)) +
+#   geom_density(alpha=0.8, color= 'black') +
+#   ggtitle("Density Plot")
 
 # Data Partition
 set.seed(1234)
