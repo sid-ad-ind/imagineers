@@ -25,11 +25,13 @@ ui <- fluidPage(
    # Application title
    titlePanel("Alarm Flood Analysis by Imagineers"),
    tags$head(tags$script(src = "message-handler.js")),
+   fileInput("upload", "Upload zip archieve", accept = ".zip"),
+   
    actionButton('doStep1', 'Classification'),
    actionButton('doStep2', 'Sequence matrix'),
    actionButton('doStep3', 'Clustering'),
    actionButton('doStep4', 'Repetitive Sequences'),
-   actionButton('doStep6', 'STEP 6'),
+   
    sidebarLayout(
      DT::dataTableOutput("t1"),
      # Show a plot of the generated distribution
@@ -56,7 +58,7 @@ ui <- fluidPage(
      DT::dataTableOutput("t4"),
      # Show a plot of the generated distribution
      mainPanel(
-       plotOutput("seqPlot"),
+       #plotOutput("seqPlot"),
        uiOutput('sequencePlot')
      )
    ),
@@ -67,7 +69,10 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-   
+  observeEvent(input$upload, {
+    unzip(input$upload$datapath)
+  })
+  
   observeEvent(input$doStep1, {
     source("classification.r")
     output$pc <- renderPlot({
