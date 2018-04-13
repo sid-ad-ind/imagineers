@@ -8,6 +8,15 @@
 #
 
 library(shiny)
+library(naivebayes)
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(caret)
+
+source("classification.r")
+setwd(getwd())
+
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -15,13 +24,35 @@ ui <- fluidPage(
    # Application title
    titlePanel("Alarm Flood Analysis by Imagineers"),
    tags$head(tags$script(src = "message-handler.js")),
-   actionButton('doStep1', 'STEP 1'),
+   actionButton('doStep1', 'Classification'),
    actionButton('doStep2', 'Sequence matrix'),
    actionButton('doStep3', 'Clustering'),
    actionButton('doStep4', 'Repetitive Sequences'),
    actionButton('doStep6', 'STEP 6'),
    sidebarLayout(
-     DT::dataTableOutput("table"),
+     DT::dataTableOutput("t1"),
+     # Show a plot of the generated distribution
+     mainPanel(
+       helpText("Pie chart of flood input data"),
+       plotOutput("pc")
+     )
+   ),
+   sidebarLayout(
+     DT::dataTableOutput("t2"),
+     mainPanel(
+       helpText("Confusion Matrix - Training data"),
+       verbatimTextOutput('cmtr')
+     )
+   ),
+   sidebarLayout(
+     DT::dataTableOutput("t3"),
+     mainPanel(
+       helpText("Confusion Matrix - Test data"),
+       verbatimTextOutput('cmte')
+     )
+   ),
+   sidebarLayout(
+     DT::dataTableOutput("t4"),
      # Show a plot of the generated distribution
      mainPanel(
        plotOutput("seqPlot"),
@@ -37,8 +68,20 @@ ui <- fluidPage(
 server <- function(input, output, session) {
    
   observeEvent(input$doStep1, {
-    session$sendCustomMessage(type = 'testmessage',
-                              message = 'STEP 1 result')
+    
+    output$pc <- renderPlot({
+      pie(pie_1,pie_2)
+    })
+    
+    output$cmtr <- renderPrint({
+      tab1
+    })
+    
+    output$cmte <- renderPrint({
+      tab2
+    })
+    
+    #session$sendCustomMessage(type = 'testmessage',message = 'STEP 1 result')
   })
   observeEvent(input$doStep2, {
     library(data.table)
