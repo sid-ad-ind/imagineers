@@ -8,6 +8,51 @@
 #
 
 library(shiny)
+library(naivebayes)
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(caret)
+source("lib.r")
+#set current working directory
+setwd(getwd())
+
+#set input directory
+inputDirectory = "True+False Floods"
+#all files of the directory
+filenames <- list.files(inputDirectory, full.names = TRUE)
+
+#set up writing
+logFile = "logFile_listOfTrueFloods.txt"
+cat("", file=logFile, sep = "\n")
+
+#setup directory - list of true floods
+TrueFloodsDir = 'TrueFloods'
+if (dir.exists(TrueFloodsDir)) {
+  unlink(TrueFloodsDir, recursive=TRUE)
+}
+dir.create(TrueFloodsDir)
+
+outputCsvFile = "output.csv"
+headerOfoutputCsvFile <- cbind("percentOfUniqueAlarms","natureOfFlood")
+write.table( headerOfoutputCsvFile,file=outputCsvFile, sep=',', row.names=F, col.names=F )
+tf = 0
+ff = 0
+#loop over each file
+for (f in filenames) {
+  c <- calculationsInCsv(f,outputCsvFile)
+  o <- labelFlood(f)
+  if (o == 'True flood') {
+    cat(f, file=logFile, append=TRUE, sep = "\n")
+    file.copy(f,TrueFloodsDir)
+    tf <- tf + 1
+  } else {
+    ff <- ff + 1
+  }
+}
+
+pie_1 = c(tf,ff)
+pie_2 = c("true_flood","false_flood")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -15,11 +60,18 @@ ui <- fluidPage(
    # Application title
    titlePanel("Alarm Flood Analysis by Imagineers"),
    tags$head(tags$script(src = "message-handler.js")),
-   actionButton('doStep1', 'STEP 1'),
+   actionButton('doStep1', 'Classification'),
    actionButton('doStep2', 'STEP 2'),
    actionButton('doStep3', 'Clustering'),
    actionButton('doStep4', 'STEP 4'),
    actionButton('doStep6', 'STEP 6'),
+   sidebarLayout(
+     DT::dataTableOutput("table1"),
+     # Show a plot of the generated distribution
+     mainPanel(
+       plotOutput("pc")
+     )
+   ),
    sidebarLayout(
      DT::dataTableOutput("table"),
      # Show a plot of the generated distribution
@@ -34,6 +86,12 @@ ui <- fluidPage(
 server <- function(input, output, session) {
    
   observeEvent(input$doStep1, {
+    
+    
+    output$pc <- renderPlot({
+      pie(pie_1,pie_2)
+    })
+    
     session$sendCustomMessage(type = 'testmessage',
                               message = 'STEP 1 result')
   })
