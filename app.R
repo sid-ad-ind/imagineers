@@ -14,7 +14,7 @@ library(ggplot2)
 library(psych)
 library(caret)
 
-source("classification.r")
+
 setwd(getwd())
 
 
@@ -24,6 +24,8 @@ ui <- fluidPage(
    # Application title
    titlePanel("Alarm Flood Analysis by Imagineers"),
    tags$head(tags$script(src = "message-handler.js")),
+   fileInput("upload", "Upload", accept = ".zip"),
+   
    actionButton('doStep1', 'Classification'),
    actionButton('doStep2', 'STEP 2'),
    actionButton('doStep3', 'Clustering'),
@@ -64,8 +66,12 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
    
+  observeEvent(input$upload, {
+    unzip(input$upload$datapath)
+  })
+  
   observeEvent(input$doStep1, {
-    
+    source("classification.r")
     output$pc <- renderPlot({
       pie(pie_1,pie_2)
     })
