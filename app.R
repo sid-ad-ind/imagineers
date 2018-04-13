@@ -13,46 +13,10 @@ library(dplyr)
 library(ggplot2)
 library(psych)
 library(caret)
-source("lib.r")
-#set current working directory
+
+source("classification.r")
 setwd(getwd())
 
-#set input directory
-inputDirectory = "True+False Floods"
-#all files of the directory
-filenames <- list.files(inputDirectory, full.names = TRUE)
-
-#set up writing
-logFile = "logFile_listOfTrueFloods.txt"
-cat("", file=logFile, sep = "\n")
-
-#setup directory - list of true floods
-TrueFloodsDir = 'TrueFloods'
-if (dir.exists(TrueFloodsDir)) {
-  unlink(TrueFloodsDir, recursive=TRUE)
-}
-dir.create(TrueFloodsDir)
-
-outputCsvFile = "output.csv"
-headerOfoutputCsvFile <- cbind("percentOfUniqueAlarms","natureOfFlood")
-write.table( headerOfoutputCsvFile,file=outputCsvFile, sep=',', row.names=F, col.names=F )
-tf = 0
-ff = 0
-#loop over each file
-for (f in filenames) {
-  c <- calculationsInCsv(f,outputCsvFile)
-  o <- labelFlood(f)
-  if (o == 'True flood') {
-    cat(f, file=logFile, append=TRUE, sep = "\n")
-    file.copy(f,TrueFloodsDir)
-    tf <- tf + 1
-  } else {
-    ff <- ff + 1
-  }
-}
-
-pie_1 = c(tf,ff)
-pie_2 = c("true_flood","false_flood")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -66,14 +30,29 @@ ui <- fluidPage(
    actionButton('doStep4', 'STEP 4'),
    actionButton('doStep6', 'STEP 6'),
    sidebarLayout(
-     DT::dataTableOutput("table1"),
+     DT::dataTableOutput("t1"),
      # Show a plot of the generated distribution
      mainPanel(
+       helpText("Pie chart of flood input data"),
        plotOutput("pc")
      )
    ),
    sidebarLayout(
-     DT::dataTableOutput("table"),
+     DT::dataTableOutput("t2"),
+     mainPanel(
+       helpText("Confusion Matrix - Training data"),
+       verbatimTextOutput('cmtr')
+     )
+   ),
+   sidebarLayout(
+     DT::dataTableOutput("t3"),
+     mainPanel(
+       helpText("Confusion Matrix - Test data"),
+       verbatimTextOutput('cmte')
+     )
+   ),
+   sidebarLayout(
+     DT::dataTableOutput("t4"),
      # Show a plot of the generated distribution
      mainPanel(
        plotOutput("distPlot")
@@ -87,13 +66,19 @@ server <- function(input, output, session) {
    
   observeEvent(input$doStep1, {
     
-    
     output$pc <- renderPlot({
       pie(pie_1,pie_2)
     })
     
-    session$sendCustomMessage(type = 'testmessage',
-                              message = 'STEP 1 result')
+    output$cmtr <- renderPrint({
+      tab1
+    })
+    
+    output$cmte <- renderPrint({
+      tab2
+    })
+    
+    #session$sendCustomMessage(type = 'testmessage',message = 'STEP 1 result')
   })
   observeEvent(input$doStep2, {
     session$sendCustomMessage(type = 'testmessage',
