@@ -13,8 +13,9 @@ library(dplyr)
 library(ggplot2)
 library(psych)
 library(caret)
+library(data.table)
 
-source("classification.r")
+
 setwd(getwd())
 
 
@@ -68,7 +69,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
    
   observeEvent(input$doStep1, {
-    
+    source("classification.r")
     output$pc <- renderPlot({
       pie(pie_1,pie_2)
     })
@@ -84,8 +85,13 @@ server <- function(input, output, session) {
     #session$sendCustomMessage(type = 'testmessage',message = 'STEP 1 result')
   })
   observeEvent(input$doStep2, {
-    library(data.table)
-    files <- list.files(path="C:/Users/mohit/Desktop/floods", pattern=".csv", full.name=TRUE)
+   
+    fullPath <- paste(getwd(),TrueFloodsDir,sep='/')
+    fullPath <- paste(fullPath,'/',sep='')
+    
+    piPath <- paste(getwd(),'sm.py',sep='/')
+
+    files <- list.files(path=fullPath, pattern=".csv", full.name=TRUE)
     
     lists <- list()
     
@@ -97,7 +103,7 @@ server <- function(input, output, session) {
     
     library(reticulate)
     sequence_matrix <- matrix(data=NA, nrow=length(lists), ncol=length(lists))
-    source_python("C:/Users/mohit/Desktop/sm.py")
+    source_python(piPath)
     
     for (i in 1:length(lists)) {
       for (j in 1:length(lists)) {
