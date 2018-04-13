@@ -47,19 +47,27 @@ ui <- fluidPage(
        verbatimTextOutput('cmtr')
      )
    ),
+   
    sidebarLayout(
-     DT::dataTableOutput("t3"),
+     DT::dataTableOutput("t4"),
      mainPanel(
        helpText("Confusion Matrix - Test data"),
        verbatimTextOutput('cmte')
      )
    ),
    sidebarLayout(
-     DT::dataTableOutput("t4"),
+     DT::dataTableOutput("t5"),
      # Show a plot of the generated distribution
      mainPanel(
-       #plotOutput("seqPlot"),
+       helpText("Similarity matrix"),
        uiOutput('sequencePlot')
+     )
+   ),
+   sidebarLayout(
+     DT::dataTableOutput("t3"),
+     mainPanel(
+       helpText("Clustering"),
+       plotOutput('distPlot')
      )
    ),
   
@@ -89,6 +97,7 @@ server <- function(input, output, session) {
     
     #session$sendCustomMessage(type = 'testmessage',message = 'STEP 1 result')
   })
+  #sequence_matrix <- ''
   observeEvent(input$doStep2, {
    
     fullPath <- paste(getwd(),TrueFloodsDir,sep='/')
@@ -107,34 +116,34 @@ server <- function(input, output, session) {
     }
     
     library(reticulate)
-    sequence_matrix <- matrix(data=NA, nrow=length(lists), ncol=length(lists))
+    sequence_matrix <<- matrix(data=NA, nrow=length(lists), ncol=length(lists))
     source_python(piPath)
     
     for (i in 1:length(lists)) {
       for (j in 1:length(lists)) {
-        sequence_matrix[i,j] <- main(lists[[i]],lists[[j]])
+        sequence_matrix[i,j] <<- main(lists[[i]],lists[[j]])
       }
     }
+    #sequence_matrix <- sequence_matrix
     #plot(sequence_matrix)
     output$sequencePlot <- renderTable({
       sequence_matrix
     })
     
-    session$sendCustomMessage(type = 'testmessage',
-                              message = 'Sequence matrix output')
+    #session$sendCustomMessage(type = 'testmessage',message = 'Sequence matrix output')
   })
   observeEvent(input$doStep3, {
-    A<- matrix( 
-      c(2, 4, 3, 1, 5, 7,
-        56,3,4,89,5,6,
-        5,2,4,1,1,1,6,7
-        ,34,2,7,8,56), # the data elements 
-      nrow=5,              # number of rows 
-      ncol=5,              # number of columns 
-      byrow = TRUE) 
-    
-    clusters <- hclust(dist(A))
-
+    # A<- matrix( 
+    #   c(2, 4, 3, 1, 5, 7,
+    #     56,3,4,89,5,6,
+    #     5,2,4,1,1,1,6,7
+    #     ,34,2,7,8,56), # the data elements 
+    #   nrow=5,              # number of rows 
+    #   ncol=5,              # number of columns 
+    #   byrow = TRUE) 
+    # print(sequence_matrix)
+    clusters <- hclust(dist(sequence_matrix))
+    #print(clusters)
     output$distPlot <- renderPlot({
       plot(clusters)
     })
@@ -144,8 +153,7 @@ server <- function(input, output, session) {
     #   clusterCut <- cutree(clusters, 2)
     #   #table(clusterCut)
     # })
-    session$sendCustomMessage(type = 'testmessage',
-                              message = 'Output of clustering result')
+    #session$sendCustomMessage(type = 'testmessage',message = 'Output of clustering result')
   })
   observeEvent(input$doStep4, {
     
