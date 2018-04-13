@@ -16,17 +16,20 @@ ui <- fluidPage(
    titlePanel("Alarm Flood Analysis by Imagineers"),
    tags$head(tags$script(src = "message-handler.js")),
    actionButton('doStep1', 'STEP 1'),
-   actionButton('doStep2', 'STEP 2'),
+   actionButton('doStep2', 'Sequence matrix'),
    actionButton('doStep3', 'Clustering'),
-   actionButton('doStep4', 'STEP 4'),
+   actionButton('doStep4', 'Repetitive Sequences'),
    actionButton('doStep6', 'STEP 6'),
    sidebarLayout(
      DT::dataTableOutput("table"),
      # Show a plot of the generated distribution
      mainPanel(
-       plotOutput("distPlot")
+       plotOutput("seqPlot"),
+       uiOutput('sequencePlot')
      )
    ),
+  
+   
    tags$div(class = "result")
 )
 
@@ -38,8 +41,33 @@ server <- function(input, output, session) {
                               message = 'STEP 1 result')
   })
   observeEvent(input$doStep2, {
+    library(data.table)
+    files <- list.files(path="C:/Users/mohit/Desktop/floods", pattern=".csv", full.name=TRUE)
+    
+    lists <- list()
+    
+    for(i in 1:length(files)) {
+      data <- read.csv(files[i],stringsAsFactors = FALSE, header= TRUE, row.names = NULL)
+      lists[i] <- data['Alarm.Tag']
+      
+    }
+    
+    library(reticulate)
+    sequence_matrix <- matrix(data=NA, nrow=length(lists), ncol=length(lists))
+    source_python("C:/Users/mohit/Desktop/sm.py")
+    
+    for (i in 1:length(lists)) {
+      for (j in 1:length(lists)) {
+        sequence_matrix[i,j] <- main(lists[[i]],lists[[j]])
+      }
+    }
+    #plot(sequence_matrix)
+    output$sequencePlot <- renderTable({
+      sequence_matrix
+    })
+    
     session$sendCustomMessage(type = 'testmessage',
-                              message = 'STEP 2 result')
+                              message = 'Sequence matrix output')
   })
   observeEvent(input$doStep3, {
     A<- matrix( 
@@ -66,8 +94,9 @@ server <- function(input, output, session) {
                               message = 'Output of clustering result')
   })
   observeEvent(input$doStep4, {
+    
     session$sendCustomMessage(type = 'testmessage',
-                              message = 'STEP 4 result')
+                              message = 'sequence matching pattern')
   })
   observeEvent(input$doStep5, {
     
